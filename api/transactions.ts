@@ -1,7 +1,28 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import pool from './db';
+import { Pool } from 'pg';
+
+// Configuração do Pool do Banco de Dados (In-line)
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Configurar CORS
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const { userId } = req.query;
 
   if (!userId || typeof userId !== 'string') {
@@ -62,7 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(405).json({ error: 'Method not allowed' });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('API Error:', error);
     return res.status(500).json({ error: 'Database error', details: error.message });
   }

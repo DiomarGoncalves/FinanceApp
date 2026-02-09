@@ -1,9 +1,16 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import pool from './db';
+import { Pool } from 'pg';
 import crypto from 'crypto';
 
+// Configuração do Pool do Banco de Dados (In-line para evitar erros de importação na Vercel)
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+
 // Usamos uma string fixa como fallback caso POSTGRES_URL não esteja definida (local)
-// Isso remove a dependência da API_KEY para o login funcionar.
 const SALT_SECRET = process.env.POSTGRES_URL || 'finai_local_secret_salt_12345';
 
 const hashPassword = (password: string) => {
@@ -11,6 +18,19 @@ const hashPassword = (password: string) => {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Configurar CORS manual para garantir respostas a qualquer origem se necessário
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
