@@ -1,9 +1,9 @@
 import React from 'react';
-import { LayoutDashboard, ReceiptText, Sparkles } from 'lucide-react';
+import { LayoutDashboard, ReceiptText } from 'lucide-react';
 
 interface MobileNavProps {
-  activeTab: 'dashboard' | 'transactions' | 'advisor';
-  setActiveTab: (tab: 'dashboard' | 'transactions' | 'advisor') => void;
+  activeTab: 'dashboard' | 'transactions';
+  setActiveTab: (tab: 'dashboard' | 'transactions') => void;
 }
 
 export const MobileNav: React.FC<MobileNavProps> = ({ activeTab, setActiveTab }) => {
@@ -16,11 +16,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ activeTab, setActiveTab })
          </button>
          <button onClick={() => setActiveTab('transactions')} className={`p-2 flex flex-col items-center gap-1 ${activeTab === 'transactions' ? 'text-primary' : 'text-secondary'}`}>
             <ReceiptText size={20} />
-            <span className="text-[10px]">Histórico</span>
-         </button>
-         <button onClick={() => setActiveTab('advisor')} className={`p-2 flex flex-col items-center gap-1 ${activeTab === 'advisor' ? 'text-primary' : 'text-secondary'}`}>
-            <Sparkles size={20} />
-            <span className="text-[10px]">IA</span>
+            <span className="text-[10px]">Extrato</span>
          </button>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Calendar as CalendarIcon, AlertCircle, Download, TrendingUp, TrendingDown, ReceiptText, Edit2, Trash2, CheckCircle2, Circle } from 'lucide-react';
+import { Search, Filter, Calendar as CalendarIcon, AlertCircle, Download, TrendingUp, TrendingDown, ReceiptText, Edit2, Trash2, CheckCircle2, Circle, Minus, Equal } from 'lucide-react';
 import { Transaction, Category, TransactionType, TransactionFilter } from '../../types';
 import { RecurrenceBadge } from '../RecurrenceBadge';
 import { getMonthOptions, getTransactionsForMonth, filterTransactions } from '../../utils/financeHelpers';
@@ -37,10 +37,11 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions
   const totals = useMemo(() => {
     const income = filteredData.filter(t => t.type === TransactionType.INCOME).reduce((acc, t) => acc + t.amount, 0);
     const expense = filteredData.filter(t => t.type === TransactionType.EXPENSE).reduce((acc, t) => acc + t.amount, 0);
+    const balance = income - expense;
     // Calcular pendente apenas para o mês atual
     const pending = filteredData.filter(t => t.status === 'pending').reduce((acc, t) => acc + t.amount, 0);
     
-    return { income, expense, balance: income - expense, pending };
+    return { income, expense, balance, pending };
   }, [filteredData]);
 
   const handleFilterChange = (key: keyof TransactionFilter, value: string) => {
@@ -83,80 +84,104 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions
   return (
     <div className="space-y-6 animate-fade-in">
       
-      {/* --- Barra de Ferramentas Avançada --- */}
-      <div className="bg-surface p-4 rounded-2xl border border-white/5 shadow-xl flex flex-col gap-4">
+      {/* --- Cabeçalho de Controle e Resumo Financeiro --- */}
+      <div className="bg-surface rounded-2xl border border-white/5 shadow-xl overflow-hidden">
         
-        {/* Linha 1: Seleção de Mês, Resumo e Exportar */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 pb-4 border-b border-white/5">
-          <div className="flex items-center gap-2 w-full md:w-auto">
-             <div className="bg-primary/10 p-2 rounded-lg text-primary">
-                <CalendarIcon size={20} />
-             </div>
-             <div className="flex flex-col w-full">
-               <label className="text-[10px] text-secondary uppercase font-bold tracking-wider">Período de Visualização</label>
-               <select 
-                  value={filters.month}
-                  onChange={(e) => handleFilterChange('month', e.target.value)}
-                  className="bg-transparent text-white font-semibold text-lg outline-none cursor-pointer hover:text-primary transition-colors"
-               >
-                 {monthOptions.map(opt => (
-                   <option key={opt.value} value={opt.value} className="bg-surface text-base">
-                     {opt.label} {opt.isFuture ? '(Projeção)' : ''}
-                   </option>
-                 ))}
-               </select>
-             </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 w-full xl:w-auto items-center">
-             <div className="flex gap-6 text-sm flex-1 justify-center xl:justify-end w-full">
-                <div className="text-center">
-                    <p className="text-secondary text-xs">Receitas</p>
-                    <p className="text-emerald-400 font-bold">+R$ {totals.income.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+        {/* Barra de Mês e Exportação */}
+        <div className="p-4 border-b border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                    <CalendarIcon size={20} />
                 </div>
-                <div className="text-center">
-                    <p className="text-secondary text-xs">Despesas</p>
-                    <p className="text-red-400 font-bold">-R$ {totals.expense.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
-                </div>
-                <div className="text-center border-l border-white/10 pl-6">
-                    <p className="text-secondary text-xs">A Pagar/Receber</p>
-                    <p className="font-bold text-orange-400">
-                    R$ {totals.pending.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-                    </p>
-                </div>
-             </div>
-
-             <button 
+                <select 
+                    value={filters.month}
+                    onChange={(e) => handleFilterChange('month', e.target.value)}
+                    className="bg-transparent text-white font-bold text-lg outline-none cursor-pointer hover:text-primary transition-colors appearance-none"
+                >
+                    {monthOptions.map(opt => (
+                    <option key={opt.value} value={opt.value} className="bg-surface text-base">
+                        {opt.label} {opt.isFuture ? '(Projeção)' : ''}
+                    </option>
+                    ))}
+                </select>
+            </div>
+            
+            <button 
                onClick={handleExportCSV}
-               className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-medium transition-colors border border-white/10"
+               className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-medium transition-colors border border-white/10"
              >
                <Download size={14} />
-               Exportar CSV
+               <span>Exportar CSV</span>
              </button>
-          </div>
         </div>
 
-        {/* Linha 2: Filtros de Pesquisa */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          
-          {/* Busca Texto */}
+        {/* --- Comparativo Mensal (Matemática Visual) --- */}
+        <div className="p-6 bg-gradient-to-r from-surface to-background/50">
+           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+               
+               {/* Receitas */}
+               <div className="flex flex-col items-center flex-1 w-full p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                   <span className="text-emerald-400 text-xs font-medium uppercase tracking-wider mb-1">Receitas</span>
+                   <div className="flex items-center gap-2 text-emerald-400">
+                       <TrendingUp size={20} />
+                       <span className="text-2xl font-bold">R$ {totals.income.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                   </div>
+               </div>
+
+               {/* Sinal de Menos */}
+               <div className="hidden md:flex text-secondary bg-white/5 p-2 rounded-full">
+                   <Minus size={20} />
+               </div>
+
+               {/* Despesas */}
+               <div className="flex flex-col items-center flex-1 w-full p-4 rounded-xl bg-red-500/5 border border-red-500/10">
+                   <span className="text-red-400 text-xs font-medium uppercase tracking-wider mb-1">Despesas</span>
+                   <div className="flex items-center gap-2 text-red-400">
+                       <TrendingDown size={20} />
+                       <span className="text-2xl font-bold">R$ {totals.expense.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                   </div>
+               </div>
+
+               {/* Sinal de Igual */}
+               <div className="hidden md:flex text-secondary bg-white/5 p-2 rounded-full">
+                   <Equal size={20} />
+               </div>
+
+               {/* Resultado */}
+               <div className={`flex flex-col items-center flex-1 w-full p-4 rounded-xl border relative overflow-hidden ${totals.balance >= 0 ? 'bg-blue-500/10 border-blue-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                   <span className={`text-xs font-medium uppercase tracking-wider mb-1 ${totals.balance >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                       Resultado (Saldo)
+                   </span>
+                   <div className={`flex items-center gap-2 ${totals.balance >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                       <span className="text-3xl font-bold">R$ {totals.balance.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                   </div>
+                   {totals.pending > 0 && (
+                       <span className="absolute bottom-1 text-[10px] text-orange-400/80">
+                           Pendente: R$ {totals.pending.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                       </span>
+                   )}
+               </div>
+
+           </div>
+        </div>
+
+        {/* Barra de Filtros */}
+        <div className="p-4 border-t border-white/5 bg-background/30 grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="md:col-span-6 relative">
             <Search className="absolute left-3 top-3 text-secondary" size={18} />
             <input 
               type="text" 
-              placeholder="Buscar por nome..." 
+              placeholder="Buscar lançamento..." 
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
-              className="w-full bg-background border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-secondary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+              className="w-full bg-background border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-secondary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm"
             />
           </div>
-
-          {/* Categoria */}
           <div className="md:col-span-3">
              <select 
                 value={filters.category}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
-                className="w-full bg-background border border-white/10 rounded-xl py-2.5 px-4 text-white focus:ring-2 focus:ring-primary outline-none appearance-none"
+                className="w-full bg-background border border-white/10 rounded-xl py-2.5 px-4 text-white text-sm focus:ring-2 focus:ring-primary outline-none appearance-none"
              >
                 <option value="all">Todas Categorias</option>
                 {Object.values(Category).map(cat => (
@@ -164,20 +189,17 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ transactions
                 ))}
              </select>
           </div>
-
-          {/* Tipo */}
           <div className="md:col-span-3">
              <select 
                 value={filters.type}
                 onChange={(e) => handleFilterChange('type', e.target.value)}
-                className="w-full bg-background border border-white/10 rounded-xl py-2.5 px-4 text-white focus:ring-2 focus:ring-primary outline-none appearance-none"
+                className="w-full bg-background border border-white/10 rounded-xl py-2.5 px-4 text-white text-sm focus:ring-2 focus:ring-primary outline-none appearance-none"
              >
                 <option value="all">Todos os Tipos</option>
                 <option value={TransactionType.INCOME}>Receitas</option>
                 <option value={TransactionType.EXPENSE}>Despesas</option>
              </select>
           </div>
-
         </div>
       </div>
 

@@ -2,8 +2,8 @@ import React from 'react';
 import { Wallet, Plus } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'dashboard' | 'transactions' | 'advisor';
-  setActiveTab: (tab: 'dashboard' | 'transactions' | 'advisor') => void;
+  activeTab: 'dashboard' | 'transactions';
+  setActiveTab: (tab: 'dashboard' | 'transactions') => void;
   onOpenModal: () => void;
 }
 
@@ -25,19 +25,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenM
               onClick={() => setActiveTab('dashboard')} 
               className={`text-sm font-medium transition-colors hover:text-white ${activeTab === 'dashboard' ? 'text-white' : 'text-secondary'}`}
             >
-              Painel
+              Painel Geral
             </button>
             <button 
               onClick={() => setActiveTab('transactions')} 
               className={`text-sm font-medium transition-colors hover:text-white ${activeTab === 'transactions' ? 'text-white' : 'text-secondary'}`}
             >
-              Transações
-            </button>
-            <button 
-              onClick={() => setActiveTab('advisor')} 
-              className={`text-sm font-medium transition-colors hover:text-white ${activeTab === 'advisor' ? 'text-white' : 'text-secondary'}`}
-            >
-              Consultor IA
+              Extrato & Transações
             </button>
           </div>
 

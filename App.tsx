@@ -11,9 +11,8 @@ import { LoginView } from './components/views/LoginView';
 // Views
 import { DashboardView } from './components/views/DashboardView';
 import { TransactionsView } from './components/views/TransactionsView';
-import { AdvisorView } from './components/views/AdvisorView';
 
-type Tab = 'dashboard' | 'transactions' | 'advisor';
+type Tab = 'dashboard' | 'transactions';
 
 function App() {
   const { user, isLoading: isAuthLoading } = useAuth();
@@ -180,10 +179,6 @@ function App() {
                         }}
                         onToggleStatus={handleToggleStatus}
                 />
-                )}
-
-                {activeTab === 'advisor' && (
-                  <AdvisorView transactions={transactions} />
                 )}
             </>
         )}
