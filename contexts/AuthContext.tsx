@@ -3,7 +3,8 @@ import { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
-  login: (name: string) => void;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -15,44 +16,77 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar se existe sessão salva ao carregar
+    // Verificar se existe sessão salva no localStorage
     const savedUser = localStorage.getItem('finai_user_session');
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (e) {
-        console.error("Erro ao restaurar sessão", e);
         localStorage.removeItem('finai_user_session');
       }
     }
     setIsLoading(false);
   }, []);
 
-  const login = (name: string) => {
-    // SIMULAÇÃO: Cria um ID baseado no nome para separar os dados no localStorage
-    // No futuro, isso será substituído por Google Auth
-    const userId = `user_${name.toLowerCase().replace(/\s/g, '_')}_${Math.floor(Math.random() * 1000)}`;
-    
-    // Verificar se já existe um ID persistente para esse nome (simulação simples)
-    // Para manter simples agora, criamos um user novo ou usamos o mock
-    
-    const newUser: User = {
-      id: userId,
-      name: name,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`
-    };
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', email, password }),
+      });
 
-    setUser(newUser);
-    localStorage.setItem('finai_user_session', JSON.stringify(newUser));
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Falha no login');
+      }
+
+      setUser(data);
+      localStorage.setItem('finai_user_session', JSON.stringify(data));
+    } catch (error: any) {
+      console.error("Erro ao fazer login:", error);
+      throw error; // Repassa o erro para a UI tratar
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (name: string, email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'register', name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Falha no cadastro');
+      }
+
+      setUser(data);
+      localStorage.setItem('finai_user_session', JSON.stringify(data));
+    } catch (error: any) {
+      console.error("Erro ao cadastrar:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('finai_user_session');
+    // Opcional: Limpar dados locais sensíveis se houver
+    localStorage.removeItem(`finai_data_${user?.id}`); 
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

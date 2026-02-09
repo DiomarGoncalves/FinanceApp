@@ -1,8 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Transaction, ReceiptData } from "../types";
 
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // Helper to encode file to base64
 export const fileToGenerativePart = async (file: File): Promise<string> => {
@@ -21,7 +20,6 @@ export const fileToGenerativePart = async (file: File): Promise<string> => {
 
 export const scanReceipt = async (base64Data: string): Promise<ReceiptData> => {
   try {
-    // Usando gemini-3-flash-preview pois suporta multimodal (imagem+texto) e JSON Schema
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: {
