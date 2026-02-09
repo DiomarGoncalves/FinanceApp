@@ -1,18 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { X, Upload, Loader2, Camera, Check, CalendarClock, CreditCard, Trash2 } from 'lucide-react';
-import { Transaction, TransactionType, ReceiptData, Category, RecurrenceType, TransactionStatus } from '../types';
-import { fileToGenerativePart, scanReceipt } from '../services/geminiService';
+import React, { useState, useEffect } from 'react';
+import { X, Check, CalendarClock, Trash2 } from 'lucide-react';
+import { Transaction, TransactionType, Category, RecurrenceType, TransactionStatus } from '../types';
 
 interface TransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (t: Transaction) => void; // Alterado de onAdd para onSave
-  initialData?: Transaction | null; // Dados para edição
-  onDelete?: (id: string) => void; // Função de deletar dentro do modal (opcional)
+  onSave: (t: Transaction) => void;
+  initialData?: Transaction | null;
+  onDelete?: (id: string) => void;
 }
 
 export const TransactionModal: React.FC<TransactionModalProps> = ({ isOpen, onClose, onSave, initialData, onDelete }) => {
-  const [isScanning, setIsScanning] = useState(false);
   const [formData, setFormData] = useState({
     id: '',
     date: new Date().toISOString().split('T')[0],
@@ -24,7 +22,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ isOpen, onCl
     recurrenceType: 'none' as RecurrenceType,
     totalInstallments: '2',
   });
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Carregar dados quando entrar em modo de edição
   useEffect(() => {
@@ -94,30 +91,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ isOpen, onCl
     onClose();
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsScanning(true);
-    try {
-      const base64 = await fileToGenerativePart(file);
-      const data: ReceiptData = await scanReceipt(base64);
-      
-      setFormData(prev => ({
-        ...prev,
-        merchant: data.merchant,
-        amount: data.amount.toString(),
-        date: data.date || prev.date,
-        category: data.category || 'Compras',
-        type: TransactionType.EXPENSE
-      }));
-    } catch (err) {
-      alert("Falha ao ler recibo. Tente novamente.");
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-surface w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
@@ -129,36 +102,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ isOpen, onCl
             <X size={24} />
           </button>
         </div>
-
-        {/* AI Scan Button (Apenas criação) */}
-        {!initialData && (
-          <div className="mb-6">
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
-              className="hidden" 
-              accept="image/*"
-            />
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isScanning}
-              className="w-full h-20 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center text-secondary hover:text-primary hover:border-primary hover:bg-primary/5 transition-all group"
-            >
-              {isScanning ? (
-                <>
-                  <Loader2 className="animate-spin mb-2 text-primary" size={24} />
-                  <span className="text-xs font-medium text-primary">IA analisando recibo...</span>
-                </>
-              ) : (
-                <>
-                  <Camera className="mb-1 group-hover:scale-110 transition-transform" size={24} />
-                  <span className="text-xs font-medium">Escanear Recibo com IA</span>
-                </>
-              )}
-            </button>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

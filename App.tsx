@@ -71,7 +71,7 @@ function App() {
     // Transação formatada para envio
     const payload = {
         ...transaction,
-        id: isNew ? tempId : transaction.id, // Se for novo, manda o ID gerado ou deixa o back gerar (aqui mandamos para consistência)
+        id: isNew ? tempId : transaction.id, 
         isProjected: false // Ao salvar, vira real
     };
 
@@ -91,9 +91,6 @@ function App() {
         });
 
         if (!res.ok) throw new Error("Erro ao salvar no banco");
-        
-        // Se for novo, o banco pode ter retornado dados normalizados, ideal seria atualizar
-        // const savedTx = await res.json();
     } catch (e) {
         console.error("Erro ao salvar:", e);
         alert("Erro ao salvar alterações no servidor.");
@@ -186,7 +183,7 @@ function App() {
                 )}
 
                 {activeTab === 'advisor' && (
-                    <AdvisorView transactions={transactions} />
+                  <AdvisorView transactions={transactions} />
                 )}
             </>
         )}

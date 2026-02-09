@@ -1,6 +1,6 @@
 # Guia de Configuração: FinAI com Vercel + Neon (PostgreSQL)
 
-Este guia explica como configurar o banco de dados e as variáveis de ambiente para o seu sistema financeiro.
+Este guia explica como configurar o banco de dados e as variáveis de ambiente.
 
 ## 1. Banco de Dados (Neon PostgreSQL)
 
@@ -9,13 +9,6 @@ Este guia explica como configurar o banco de dados e as variáveis de ambiente p
 3. Copie a **Connection String** (ex: `postgres://user:pass@ep-xyz.us-east-2.aws.neon.tech/neondb?sslmode=require`).
 4. Vá para o **SQL Editor** no Neon e rode o script abaixo.
 
-**SE VOCÊ JÁ CRIOU AS TABELAS ANTES, RODE ESTE COMANDO PARA ATUALIZAR:**
-```sql
-ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS password TEXT;
-```
-
-**SE FOR A PRIMEIRA VEZ, RODE O SCRIPT COMPLETO:**
 ```sql
 -- Tabela de Usuários
 CREATE TABLE IF NOT EXISTS users (
@@ -50,26 +43,18 @@ CREATE INDEX idx_transactions_date ON transactions(date);
 
 ## 2. Configurando o .env (Variáveis de Ambiente)
 
-Crie um arquivo chamado `.env` na raiz do projeto (para rodar localmente com `vercel dev`) e configure as mesmas variáveis no painel da Vercel (Settings > Environment Variables).
+Crie um arquivo chamado `.env` na raiz do projeto (para rodar localmente com `vercel dev`) e configure a seguinte variável no painel da Vercel (Settings > Environment Variables).
 
 Conteúdo do arquivo `.env`:
 
 ```env
 # Conexão do Banco de Dados (Pegue no Neon)
 POSTGRES_URL="postgres://usuario:senha@endpoint.neon.tech/neondb?sslmode=require"
-
-# API Key do Google Gemini (Pegue em aistudio.google.com)
-# O backend (API Routes) usa process.env.API_KEY
-API_KEY="sua_chave_do_google_aqui"
-
-# O Frontend (React/Vite) usa import.meta.env.VITE_API_KEY
-# Recomendado manter ambas sincronizadas com o mesmo valor para este projeto híbrido
-VITE_API_KEY="sua_chave_do_google_aqui"
 ```
 
-## 3. Como Rodar Localmente com API
+**Nota:** Não é necessário configurar API_KEY, pois a IA foi desativada.
 
-Como agora temos uma API Serverless (`/api`), o `npm run dev` padrão do Vite não processa essas funções. Você deve usar a CLI da Vercel:
+## 3. Como Rodar Localmente
 
 1. Instale a Vercel CLI: `npm i -g vercel`
 2. Rode o projeto:

@@ -37,7 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenM
               onClick={() => setActiveTab('advisor')} 
               className={`text-sm font-medium transition-colors hover:text-white ${activeTab === 'advisor' ? 'text-white' : 'text-secondary'}`}
             >
-              Consultor
+              Consultor IA
             </button>
           </div>
 

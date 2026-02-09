@@ -2,10 +2,12 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import pool from './db';
 import crypto from 'crypto';
 
-// Função auxiliar simples para hash (Em produção real, use bcrypt ou argon2)
-// Usamos crypto nativo para evitar dependências extras neste ambiente
+// Usamos uma string fixa como fallback caso POSTGRES_URL não esteja definida (local)
+// Isso remove a dependência da API_KEY para o login funcionar.
+const SALT_SECRET = process.env.POSTGRES_URL || 'finai_local_secret_salt_12345';
+
 const hashPassword = (password: string) => {
-  return crypto.createHash('sha256').update(password + process.env.API_KEY).digest('hex');
+  return crypto.createHash('sha256').update(password + SALT_SECRET).digest('hex');
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, ReceiptText, MessageSquareText } from 'lucide-react';
+import { LayoutDashboard, ReceiptText, Sparkles } from 'lucide-react';
 
 interface MobileNavProps {
   activeTab: 'dashboard' | 'transactions' | 'advisor';
@@ -19,8 +19,8 @@ export const MobileNav: React.FC<MobileNavProps> = ({ activeTab, setActiveTab })
             <span className="text-[10px]">Histórico</span>
          </button>
          <button onClick={() => setActiveTab('advisor')} className={`p-2 flex flex-col items-center gap-1 ${activeTab === 'advisor' ? 'text-primary' : 'text-secondary'}`}>
-            <MessageSquareText size={20} />
-            <span className="text-[10px]">Consultor</span>
+            <Sparkles size={20} />
+            <span className="text-[10px]">IA</span>
          </button>
       </div>
     </div>
