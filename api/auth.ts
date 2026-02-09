@@ -54,17 +54,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const userId = crypto.randomUUID();
       const passwordHash = hashPassword(password);
+      // Gerar URL do avatar dinamicamente (não salvo no banco)
       const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`;
 
       const query = `
         INSERT INTO users (id, name, email, password, created_at) 
         VALUES ($1, $2, $3, $4, NOW()) 
-        RETURNING id, name, email, avatar;
+        RETURNING id, name, email;
       `;
       
       const result = await pool.query(query, [userId, name, email, passwordHash]);
       const user = result.rows[0];
-      user.avatar = avatar; // Garante avatar na resposta
+      user.avatar = avatar; // Anexa o avatar ao objeto de resposta manualmente
 
       return res.status(201).json(user);
     }
@@ -81,6 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const user = result.rows[0];
+      // Gera o avatar baseado no nome recuperado do banco
       user.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff`;
 
       return res.status(200).json(user);
