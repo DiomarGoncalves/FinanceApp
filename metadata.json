@@ -1,0 +1,7 @@
+{
+  "name": "FinAI - Finanças Inteligentes",
+  "description": "Um rastreador financeiro de classe mundial com IA. Possui digitalização de recibos, categorização inteligente e um consultor financeiro pessoal.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
